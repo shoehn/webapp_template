@@ -13,6 +13,12 @@ frontend/dist-ssr/
 frontend/*.local
 frontend/.vite/
 
+# Testing
+frontend/coverage/
+frontend/test-results/
+frontend/playwright-report/
+frontend/.playwright/
+
 # Environment files
 **/.env
 **/.env.local

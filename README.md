@@ -18,6 +18,11 @@ A modern, full-stack web application template featuring a Rust backend and React
 - **Tailwind CSS v4** - Latest utility-first CSS framework with `@theme` directive
 - **shadcn-ui** - High-quality React components
 
+### Testing
+- **Vitest** - Fast unit test framework for Vite
+- **React Testing Library** - Component testing utilities
+- **Playwright** - End-to-end testing framework
+
 ## Project Structure
 
 ```
@@ -37,10 +42,14 @@ webapp_template/
 │   │   ├── components/     # React components
 │   │   │   └── ui/        # shadcn-ui components
 │   │   ├── lib/           # Utilities
+│   │   ├── test/          # Test setup files
 │   │   ├── App.tsx        # Main app component
 │   │   └── main.tsx       # Entry point
+│   ├── e2e/               # Playwright E2E tests
 │   ├── package.json       # Node dependencies
-│   └── vite.config.ts     # Vite configuration
+│   ├── vite.config.ts     # Vite configuration
+│   ├── vitest.config.ts   # Vitest test configuration
+│   └── playwright.config.ts # Playwright configuration
 │
 └── scripts/               # Helper scripts
     └── dev.sh            # Start both servers
@@ -150,6 +159,155 @@ This template uses **Tailwind CSS v4**, which has a new approach to theming:
 
 Then use it: `className="bg-[hsl(var(--color-brand))]"`
 
+## Testing
+
+This template includes comprehensive testing setup with Vitest (for unit/component tests) and Playwright (for E2E tests).
+
+### Unit and Component Testing (Vitest + React Testing Library)
+
+The project uses **Vitest** as the test runner (fast, Vite-native alternative to Jest) and **React Testing Library** for component testing.
+
+#### Running Tests
+
+```bash
+cd frontend
+
+# Run tests in watch mode (recommended during development)
+npm test
+
+# Run tests once
+npm run test:run
+
+# Run tests with UI
+npm test:ui
+
+# Generate coverage report
+npm run test:coverage
+```
+
+#### Test File Structure
+
+- Unit tests: `src/**/*.test.ts`
+- Component tests: `src/**/*.test.tsx`
+- Test setup: `src/test/setup.ts`
+- Config: `vitest.config.ts`
+
+#### Writing Component Tests
+
+Example test for a Button component:
+
+```typescript
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { Button } from './button'
+
+it('should handle click events', async () => {
+  const handleClick = vi.fn()
+  const user = userEvent.setup()
+
+  render(<Button onClick={handleClick}>Click me</Button>)
+  await user.click(screen.getByRole('button'))
+
+  expect(handleClick).toHaveBeenCalledTimes(1)
+})
+```
+
+#### Example Tests Included
+
+- `src/lib/utils.test.ts` - Unit test for utility functions
+- `src/components/ui/button.test.tsx` - Component test for Button
+- `src/components/ui/card.test.tsx` - Component test for Card
+- `src/App.test.tsx` - Integration test for App component
+
+### End-to-End Testing (Playwright)
+
+**Playwright** provides reliable E2E testing across all browsers with powerful features like auto-waiting and network mocking.
+
+#### Running E2E Tests
+
+```bash
+cd frontend
+
+# Run all E2E tests
+npm run test:e2e
+
+# Run E2E tests with UI (visual test runner)
+npm run test:e2e:ui
+
+# Run E2E tests in headed mode (see browser)
+npm run test:e2e:headed
+
+# Debug E2E tests (step through)
+npm run test:e2e:debug
+```
+
+#### E2E Test File Structure
+
+- E2E tests: `e2e/**/*.spec.ts`
+- Config: `playwright.config.ts`
+
+#### Writing E2E Tests
+
+Example E2E test:
+
+```typescript
+import { test, expect } from '@playwright/test'
+
+test('should display API response', async ({ page }) => {
+  await page.goto('/')
+
+  // Mock API endpoint
+  await page.route('/api/hello', route => {
+    route.fulfill({
+      status: 200,
+      body: JSON.stringify({ message: 'Hello!', timestamp: 123 })
+    })
+  })
+
+  await page.getByRole('button', { name: /fetch from api/i }).click()
+  await expect(page.getByText('API Response:')).toBeVisible()
+})
+```
+
+#### Example E2E Tests Included
+
+- `e2e/app.spec.ts` - Main application E2E tests
+- `e2e/example.spec.ts` - Example tests showcasing Playwright features (responsive design, accessibility, network mocking)
+
+### Test Coverage
+
+Generate a coverage report:
+
+```bash
+cd frontend
+npm run test:coverage
+```
+
+Coverage reports are generated in:
+- Terminal output (text summary)
+- `coverage/index.html` (HTML report - open in browser)
+
+### Continuous Integration
+
+For CI/CD pipelines, use:
+
+```bash
+# Frontend tests
+cd frontend
+npm run test:run          # Unit/component tests (no watch mode)
+npm run test:e2e          # E2E tests (automatically starts dev server)
+```
+
+### Best Practices
+
+1. **Unit Tests**: Test utility functions and business logic in isolation
+2. **Component Tests**: Test component behavior, user interactions, and props
+3. **Integration Tests**: Test multiple components working together
+4. **E2E Tests**: Test critical user flows and happy paths
+5. **Mock External Dependencies**: Use `vi.fn()` (Vitest) or `page.route()` (Playwright)
+6. **Follow AAA Pattern**: Arrange, Act, Assert
+7. **Use Testing Library Queries**: Prefer `getByRole`, `getByLabelText` over `getByTestId`
+
 ## Building for Production
 
 ### Backend
@@ -170,10 +328,23 @@ npm run build
 
 ## Project Scripts
 
+### Development
 - `scripts/dev.sh` - Start both backend and frontend
 - `backend`: `cargo run` - Run backend server
-- `backend`: `cargo test` - Run backend tests
 - `frontend`: `npm run dev` - Start dev server
+
+### Testing
+- `backend`: `cargo test` - Run backend tests
+- `frontend`: `npm test` - Run unit/component tests (watch mode)
+- `frontend`: `npm run test:run` - Run tests once
+- `frontend`: `npm run test:ui` - Run tests with UI
+- `frontend`: `npm run test:coverage` - Generate coverage report
+- `frontend`: `npm run test:e2e` - Run E2E tests
+- `frontend`: `npm run test:e2e:ui` - Run E2E tests with UI
+- `frontend`: `npm run test:e2e:headed` - Run E2E tests in headed mode
+- `frontend`: `npm run test:e2e:debug` - Debug E2E tests
+
+### Building
 - `frontend`: `npm run build` - Build for production
 - `frontend`: `npm run preview` - Preview production build
 

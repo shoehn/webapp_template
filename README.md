@@ -15,7 +15,7 @@ A modern, full-stack web application template featuring a Rust backend and React
 - **React** - UI library
 - **TypeScript** - Type-safe JavaScript
 - **Vite** - Fast build tool and dev server
-- **Tailwind CSS** - Utility-first CSS framework
+- **Tailwind CSS v4** - Latest utility-first CSS framework with `@theme` directive
 - **shadcn-ui** - High-quality React components
 
 ## Project Structure
@@ -131,9 +131,24 @@ const data = await response.json()
 
 #### Styling
 
+This template uses **Tailwind CSS v4**, which has a new approach to theming:
+
 - Use Tailwind utility classes directly
-- Customize theme in `frontend/tailwind.config.js`
-- Modify CSS variables in `frontend/src/index.css`
+- Theme is configured using `@theme` directive in `frontend/src/index.css`
+- CSS variables use the `--color-*` naming convention (e.g., `--color-primary`)
+- Colors are referenced using `hsl(var(--color-name))` syntax
+- Dark mode is automatic using `@media (prefers-color-scheme: dark)`
+- Minimal configuration in `frontend/tailwind.config.js` (only content paths)
+
+**Example custom color:**
+```css
+/* In frontend/src/index.css */
+@theme {
+  --color-brand: 200 100% 50%;
+}
+```
+
+Then use it: `className="bg-[hsl(var(--color-brand))]"`
 
 ## Building for Production
 

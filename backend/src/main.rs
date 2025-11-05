@@ -1,4 +1,5 @@
 mod api;
+mod auth;
 mod config;
 mod db;
 mod models;
@@ -32,7 +33,8 @@ async fn main() {
     let cors = CorsLayer::new()
         .allow_origin(Any)
         .allow_methods(Any)
-        .allow_headers(Any);
+        .allow_headers(Any)
+        .allow_credentials(true);
 
     // Create router with all routes
     let app = api::create_router(pool).layer(cors);

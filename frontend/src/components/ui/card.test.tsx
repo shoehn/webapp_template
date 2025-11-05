@@ -53,10 +53,10 @@ describe('Card Components', () => {
     expect(header.className).toContain('custom-header')
   })
 
-  it('should render CardTitle as h3 element', () => {
+  it('should render CardTitle as div element', () => {
     render(<CardTitle>Title Text</CardTitle>)
     const title = screen.getByText('Title Text')
-    expect(title.tagName).toBe('H3')
+    expect(title.tagName).toBe('DIV')
   })
 
   it('should render CardDescription with muted styling', () => {

@@ -14,6 +14,14 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
     css: true,
+    exclude: [
+      'e2e/**',                 // ✅ keep E2E out
+      'playwright.config.*',
+      'node_modules/**',
+      'dist/**',
+      'coverage/**',
+      '**/*.e2e.*',            // ✅ keep E2E file suffix out
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

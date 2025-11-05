@@ -26,7 +26,7 @@ test.describe('Example E2E Tests', () => {
     })
 
     // Verify page loaded correctly
-    await expect(page).toHaveTitle(/Vite \+ React \+ TS/i)
+    await expect(page).toHaveTitle(/frontend/i)
 
     // Find and click the fetch button
     const fetchButton = page.getByRole('button', { name: /fetch from api/i })

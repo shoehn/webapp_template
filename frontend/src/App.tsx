@@ -30,10 +30,12 @@ function App() {
   }
 
   return (
+    <>
+    <h1 className="text-2xl font-bold mb-4">Web App Template</h1>
     <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--color-background))] p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Web App Template</CardTitle>
+          <CardTitle>Web App Card Demo</CardTitle>
           <CardDescription>
             Axum + Diesel + SQLite + React + Vite + Tailwind + shadcn-ui
           </CardDescription>
@@ -77,6 +79,7 @@ function App() {
         </CardContent>
       </Card>
     </div>
+    </>
   )
 }
 

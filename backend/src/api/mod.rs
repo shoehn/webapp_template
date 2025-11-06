@@ -1,18 +1,33 @@
+pub mod auth;
+
 use axum::{
     extract::State,
     http::StatusCode,
+    middleware,
     response::IntoResponse,
-    routing::get,
+    routing::{get, post},
     Json, Router,
 };
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::{db::DbPool, models::ApiResponse};
+use crate::{auth::require_auth, db::DbPool, models::ApiResponse};
 
 pub fn create_router(pool: DbPool) -> Router {
-    Router::new()
+    let public_routes = Router::new()
         .route("/health", get(health_check))
         .route("/api/hello", get(hello))
+        .route("/api/auth/register", post(auth::register))
+        .route("/api/auth/login", post(auth::login))
+        .route("/api/auth/refresh", post(auth::refresh))
+        .route("/api/auth/logout", post(auth::logout));
+
+    let protected_routes = Router::new()
+        .route("/api/auth/me", get(auth::me))
+        .route_layer(middleware::from_fn(require_auth));
+
+    Router::new()
+        .merge(public_routes)
+        .merge(protected_routes)
         .with_state(pool)
 }
 

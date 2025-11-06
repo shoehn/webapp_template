@@ -57,6 +57,7 @@ pub async fn register(
     // Insert user
     let user: User = diesel::insert_into(users::table)
         .values(&new_user)
+        .returning(User::as_select())
         .get_result(&mut conn)
         .map_err(|e| {
             tracing::error!("Failed to insert user: {:?}", e);
@@ -70,7 +71,8 @@ pub async fn register(
         })?;
 
     // Create tokens
-    create_auth_response(user, &mut conn).await
+    let auth = create_auth_response(user, &mut conn).await?;
+    Ok(Json(auth))
 }
 
 /// Login with email and password
@@ -86,6 +88,7 @@ pub async fn login(
     // Find user by email
     let user: User = users::table
         .filter(users::email.eq(payload.email.to_lowercase()))
+        .select(User::as_select())
         .first(&mut conn)
         .map_err(|_| {
             (
@@ -151,6 +154,7 @@ pub async fn refresh(
     // Get user
     let user: User = users::table
         .find(refresh_token.user_id)
+        .select(User::as_select())
         .first(&mut conn)
         .map_err(|_| {
             (StatusCode::UNAUTHORIZED, "User not found").into_response()
@@ -214,7 +218,11 @@ pub async fn me(
         (StatusCode::INTERNAL_SERVER_ERROR, "Database error").into_response()
     })?;
 
-    let user: User = users::table.find(user_id).first(&mut conn).map_err(|_| {
+    let user: User = users::table
+        .find(user_id)
+        .select(User::as_select())
+        .first(&mut conn)
+        .map_err(|_| {
         (StatusCode::NOT_FOUND, "User not found").into_response()
     })?;
 

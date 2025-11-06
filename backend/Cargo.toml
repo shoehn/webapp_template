@@ -23,3 +23,7 @@ uuid = { version = "1.11", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 rand = "0.10.0-rc.1"
 validator = { version = "0.20.0", features = ["derive"] }
+
+# API Documentation
+utoipa = { version = "5.3", features = ["axum_extras", "chrono", "uuid"] }
+utoipa-swagger-ui = { version = "8.1", features = ["axum"] }

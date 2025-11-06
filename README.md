@@ -10,6 +10,9 @@ A modern, full-stack web application template featuring a Rust backend and React
 - **SQLite** - Lightweight embedded database
 - **Tokio** - Async runtime
 - **Tower** - Modular middleware
+- **Utoipa** - OpenAPI documentation generator with Swagger UI
+- **JWT** - JSON Web Token authentication with refresh tokens
+- **Argon2** - Password hashing (OWASP recommended)
 
 ### Frontend
 - **React** - UI library
@@ -116,8 +119,11 @@ Create `backend/.env`:
 DATABASE_URL=database.db
 HOST=127.0.0.1
 PORT=3000
+JWT_SECRET=your-secret-key-here-change-in-production
 RUST_LOG=webapp_backend=debug,tower_http=debug
 ```
+
+**Important:** Change `JWT_SECRET` to a secure random string in production.
 
 ### Frontend Development
 
@@ -348,27 +354,107 @@ npm run build
 - `frontend`: `npm run build` - Build for production
 - `frontend`: `npm run preview` - Preview production build
 
-## API Endpoints
+## API Documentation
 
-### Example Endpoints
+The API includes comprehensive OpenAPI 3.0 documentation with an interactive Swagger UI.
 
+### Accessing API Documentation
+
+Once the backend is running, visit:
+
+**Swagger UI:** `http://localhost:3000/swagger-ui`
+
+The Swagger UI provides:
+- Interactive API testing
+- Complete endpoint documentation
+- Request/response schemas
+- Authentication testing with JWT tokens
+
+### API Endpoints
+
+#### Health & Example
 - `GET /health` - Health check
 - `GET /api/hello` - Example API endpoint
+
+#### Authentication
+- `POST /api/auth/register` - Register a new user
+- `POST /api/auth/login` - Login with email and password
+- `POST /api/auth/refresh` - Refresh access token using refresh token
+- `POST /api/auth/logout` - Logout and invalidate refresh token
+- `GET /api/auth/me` - Get current authenticated user (requires JWT)
+
+### Authentication Flow
+
+This template implements a secure two-token authentication system:
+
+1. **Access Token** (JWT, 15 minutes): Used for API requests, sent via Authorization header or httpOnly cookie
+2. **Refresh Token** (UUID, 30 days): Used to obtain new access tokens, stored in database
+
+**Registration/Login:**
+```typescript
+const response = await fetch('/api/auth/login', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ email: 'user@example.com', password: 'password123' })
+})
+const { access_token, refresh_token, user } = await response.json()
+```
+
+**Authenticated Requests:**
+```typescript
+const response = await fetch('/api/auth/me', {
+  headers: { 'Authorization': `Bearer ${access_token}` }
+})
+```
+
+**Token Refresh:**
+```typescript
+const response = await fetch('/api/auth/refresh', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ refresh_token })
+})
+const { access_token } = await response.json()
+```
+
+### Security Features
+
+- **Argon2id** password hashing (OWASP recommended)
+- **JWT** access tokens with short expiration
+- **Refresh token rotation** with database storage
+- **httpOnly cookies** for XSS protection
+- **CORS** properly configured for credentials
+- **Input validation** using validator crate
 
 ## Database
 
 The template uses SQLite with Diesel ORM. The database file (`database.db`) is created automatically when you run the backend.
 
-### Example Migration
+### Migrations
 
-An example migration for a `users` table is included:
+The template includes migrations for authentication:
 
+**Users table** (`00000000000000_create_users`):
 ```sql
 CREATE TABLE users (
-    id INTEGER PRIMARY KEY NOT NULL,
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     username TEXT NOT NULL UNIQUE,
     email TEXT NOT NULL UNIQUE,
-    created_at INTEGER NOT NULL
+    password_hash TEXT NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT 1,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+**Refresh tokens table** (`00000000000001_create_refresh_tokens`):
+```sql
+CREATE TABLE refresh_tokens (
+    id TEXT PRIMARY KEY NOT NULL,
+    user_id INTEGER NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 ```
 
@@ -386,12 +472,14 @@ server: {
 }
 ```
 
-### Adding Authentication
+### Extending Authentication
 
-1. Add authentication routes in `backend/src/api/`
-2. Implement middleware for protected routes
-3. Add JWT or session handling
-4. Create login/register components in frontend
+The template includes complete JWT authentication. To extend it:
+
+1. Add more protected routes in `backend/src/api/mod.rs` using the `require_auth` middleware
+2. Add user roles/permissions in the `users` table
+3. Create role-based authorization middleware
+4. Add OAuth providers (Google, GitHub, etc.)
 
 ### Adding More Database Tables
 

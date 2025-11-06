@@ -1,6 +1,7 @@
 use chrono::{Duration, NaiveDateTime, Utc};
 use diesel::prelude::*;
 use serde::Deserialize;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::db::schema::refresh_tokens;
@@ -37,7 +38,8 @@ impl NewRefreshToken {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct RefreshRequest {
+    /// Refresh token UUID
     pub refresh_token: String,
 }

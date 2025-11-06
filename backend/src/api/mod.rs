@@ -31,11 +31,29 @@ pub fn create_router(pool: DbPool) -> Router {
         .with_state(pool)
 }
 
-async fn health_check() -> impl IntoResponse {
+/// Health check endpoint
+#[utoipa::path(
+    get,
+    path = "/health",
+    responses(
+        (status = 200, description = "Service is healthy"),
+    ),
+    tag = "Health"
+)]
+pub async fn health_check() -> impl IntoResponse {
     (StatusCode::OK, "OK")
 }
 
-async fn hello(State(_pool): State<DbPool>) -> impl IntoResponse {
+/// Example API endpoint
+#[utoipa::path(
+    get,
+    path = "/api/hello",
+    responses(
+        (status = 200, description = "Hello message", body = ApiResponse),
+    ),
+    tag = "Example"
+)]
+pub async fn hello(State(_pool): State<DbPool>) -> impl IntoResponse {
     let timestamp = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap()

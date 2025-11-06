@@ -19,6 +19,18 @@ use crate::{
 const COOKIE_MAX_AGE: i64 = 15 * 60; // 15 minutes in seconds
 
 /// Register a new user
+#[utoipa::path(
+    post,
+    path = "/api/auth/register",
+    request_body = RegisterRequest,
+    responses(
+        (status = 200, description = "User registered successfully", body = AuthResponse),
+        (status = 400, description = "Validation error"),
+        (status = 409, description = "Email or username already exists"),
+        (status = 500, description = "Internal server error"),
+    ),
+    tag = "Authentication"
+)]
 pub async fn register(
     State(pool): State<DbPool>,
     Json(payload): Json<RegisterRequest>,
@@ -76,6 +88,18 @@ pub async fn register(
 }
 
 /// Login with email and password
+#[utoipa::path(
+    post,
+    path = "/api/auth/login",
+    request_body = LoginRequest,
+    responses(
+        (status = 200, description = "Login successful", body = AuthResponse),
+        (status = 401, description = "Invalid credentials"),
+        (status = 403, description = "Account disabled"),
+        (status = 500, description = "Internal server error"),
+    ),
+    tag = "Authentication"
+)]
 pub async fn login(
     State(pool): State<DbPool>,
     Json(payload): Json<LoginRequest>,
@@ -125,6 +149,18 @@ pub async fn login(
 }
 
 /// Refresh access token using refresh token
+#[utoipa::path(
+    post,
+    path = "/api/auth/refresh",
+    request_body = RefreshRequest,
+    responses(
+        (status = 200, description = "Token refreshed successfully", body = AuthResponse),
+        (status = 401, description = "Invalid or expired refresh token"),
+        (status = 403, description = "Account disabled"),
+        (status = 500, description = "Internal server error"),
+    ),
+    tag = "Authentication"
+)]
 pub async fn refresh(
     State(pool): State<DbPool>,
     Json(payload): Json<RefreshRequest>,
@@ -180,6 +216,16 @@ pub async fn refresh(
 }
 
 /// Logout - invalidate refresh token
+#[utoipa::path(
+    post,
+    path = "/api/auth/logout",
+    request_body = RefreshRequest,
+    responses(
+        (status = 204, description = "Logout successful"),
+        (status = 500, description = "Internal server error"),
+    ),
+    tag = "Authentication"
+)]
 pub async fn logout(
     State(pool): State<DbPool>,
     Json(payload): Json<RefreshRequest>,
@@ -205,6 +251,19 @@ pub async fn logout(
 }
 
 /// Get current authenticated user
+#[utoipa::path(
+    get,
+    path = "/api/auth/me",
+    responses(
+        (status = 200, description = "Current user information", body = UserResponse),
+        (status = 401, description = "Not authenticated"),
+        (status = 404, description = "User not found"),
+    ),
+    tag = "Authentication",
+    security(
+        ("bearer_auth" = [])
+    )
+)]
 pub async fn me(
     State(pool): State<DbPool>,
     Extension(auth_user): Extension<AuthUser>,
